@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Quiz App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <div class="logo">QuizMaster</div>
+      <ul class="menu">
+        <li class="dropdown">
+          Quiz Level ▼
+          <ul class="dropdown-menu">
+            <li data-level="easy">Easy</li>
+            <li data-level="medium">Medium</li>
+            <li data-level="hard">Hard</li>
+          </ul>
+        </li>
+        <li id="analysis-btn">Analysis</li>
+        <li id="history-btn">History</li>
+        <li id="export-btn">Export</li>
+        <li id="voice-btn">🎙️</li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="animated-bg">
+    <div class="container">
+      <div id="setup-box">
+        <h2>Select Category</h2>
+        <select id="category-select">
+          <option value="">--Choose--</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+        <button id="start-btn" disabled>Start Quiz</button>
+      </div>
+
+      <div id="quiz-box" class="hidden">
+        <h2 id="question">Loading...</h2>
+        <div id="progress-bar"><div id="progress"></div></div>
+        <div id="timer">Time Left: <span id="time">15</span>s</div>
+        <div id="answer-buttons" class="btn-container"></div>
+        <button id="next-btn">Next</button>
+        <div id="score-box"></div>
+        <button id="restart-btn" class="hidden">Restart</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="modal" id="history-modal">
+    <div class="modal-header">
+      <h3>Quiz History</h3>
+      <button onclick="closeModal()">✖</button>
+    </div>
+    <table id="history-table">
+      <thead><tr><th>Date</th><th>Level</th><th>Score</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <audio id="sound-correct" src="https://cdn.pixabay.com/audio/2022/03/15/audio_9f83e96d03.mp3"></audio>
+  <audio id="sound-wrong" src="https://cdn.pixabay.com/audio/2022/03/15/audio_9bf5080d75.mp3"></audio>
+  <audio id="sound-timeout" src="https://cdn.pixabay.com/audio/2022/03/15/audio_326f7e2cb3.mp3"></audio>
+
+  <script>
+    const categorySelect = document.getElementById("category-select");
+    const startBtn = document.getElementById("start-btn");
+    const questionElement = document.getElementById("question");
+    const answerButtons = document.getElementById("answer-buttons");
+    const nextBtn = document.getElementById("next-btn");
+    const quizBox = document.getElementById("quiz-box");
+    const setupBox = document.getElementById("setup-box");
+    const restartBtn = document.getElementById("restart-btn");
+    const timeEl = document.getElementById("time");
+    const progress = document.getElementById("progress");
+    const scoreBox = document.getElementById("score-box");
+    const historyBtn = document.getElementById("history-btn");
+    const voiceBtn = document.getElementById("voice-btn");
+    const correctSound = document.getElementById("sound-correct");
+    const wrongSound = document.getElementById("sound-wrong");
+    const timeoutSound = document.getElementById("sound-timeout");
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timer;
+    let timeLeft;
+    let selectedLevel = "";
+    let history = [];
+
+    const questions = {
+      easy: [
+        { q: "2 + 2 = ?", options: ["3", "4", "5", "6"], answer: "4" },
+        { q: "Capital of France?", options: ["Berlin", "London", "Paris", "Rome"], answer: "Paris" }
+      ],
+      medium: [
+        { q: "10 * 3 = ?", options: ["30", "20", "40", "25"], answer: "30" },
+        { q: "HTML stands for?", options: ["Markup", "Markdown", "Machine", "Motor"], answer: "Markup" }
+      ],
+      hard: [
+        { q: "Derivative of x^2?", options: ["2x", "x", "x^2", "1"], answer: "2x" },
+        { q: "Binary of 10?", options: ["0100", "1010", "1001", "1100"], answer: "1010" }
+      ]
+    };
+
+    categorySelect.addEventListener("change", () => {
+      selectedLevel = categorySelect.value;
+      startBtn.disabled = !selectedLevel;
+    });
+
+    startBtn.onclick = () => {
+      setupBox.classList.add("hidden");
+      quizBox.classList.remove("hidden");
+      currentQuestionIndex = 0;
+      score = 0;
+      loadQuestion();
+    };
+
+    nextBtn.onclick = () => {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions[selectedLevel].length) {
+        loadQuestion();
+      } else {
+        clearInterval(timer);
+        showScore();
+      }
+    };
+
+    restartBtn.onclick = () => {
+      location.reload();
+    };
+
+    function loadQuestion() {
+      clearInterval(timer);
+      timeLeft = 15;
+      timeEl.textContent = timeLeft;
+      timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        progress.style.width = `${(15 - timeLeft) / 15 * 100}%`;
+        if (timeLeft === 0) {
+          timeoutSound.play();
+          clearInterval(timer);
+          nextBtn.click();
+        }
+      }, 1000);
+
+      const question = questions[selectedLevel][currentQuestionIndex];
+      questionElement.textContent = question.q;
+      answerButtons.innerHTML = "";
+
+      question.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.className = "btn";
+        btn.textContent = option;
+        btn.onclick = () => selectAnswer(btn, question.answer);
+        answerButtons.appendChild(btn);
+      });
+    }
+
+    function selectAnswer(btn, correctAnswer) {
+      clearInterval(timer);
+      const isCorrect = btn.textContent === correctAnswer;
+      btn.classList.add(isCorrect ? "correct" : "wrong");
+      if (isCorrect) {
+        score++;
+        correctSound.play();
+      } else {
+        wrongSound.play();
+      }
+      Array.from(answerButtons.children).forEach(b => {
+        if (b.textContent === correctAnswer) b.classList.add("correct");
+        b.disabled = true;
+      });
+    }
+
+    function showScore() {
+      scoreBox.textContent = `Your Score: ${score}/${questions[selectedLevel].length}`;
+      restartBtn.classList.remove("hidden");
+      const entry = {
+        date: new Date().toLocaleString(),
+        level: selectedLevel,
+        score: `${score}/${questions[selectedLevel].length}`
+      };
+      history.push(entry);
+      localStorage.setItem("quizHistory", JSON.stringify(history));
+    }
+
+    function closeModal() {
+      document.getElementById("overlay").style.display = "none";
+      document.getElementById("history-modal").style.display = "none";
+    }
+
+    historyBtn.onclick = () => {
+      const tableBody = document.querySelector("#history-table tbody");
+      tableBody.innerHTML = "";
+      const saved = localStorage.getItem("quizHistory");
+      if (saved) history = JSON.parse(saved);
+
+      if (history.length === 0) {
+        tableBody.innerHTML = "<tr><td colspan='3'>No history available</td></tr>";
+      } else {
+        history.forEach(h => {
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${h.date}</td><td>${h.level}</td><td>${h.score}</td>`;
+          tableBody.appendChild(row);
+        });
+      }
+      document.getElementById("overlay").style.display = "block";
+      document.getElementById("history-modal").style.display = "block";
+    };
+
+    exportBtn.onclick = () => {
+      const csvContent = "data:text/csv;charset=utf-8," +
+        ["Date,Level,Score"].concat(history.map(h => `${h.date},${h.level},${h.score}`)).join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "quiz_history.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    voiceBtn.onclick = () => {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) return alert("Voice not supported");
+      const recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.start();
+
+      recognition.onresult = (e) => {
+        const command = e.results[0][0].transcript.toLowerCase();
+        if (command.includes("start")) startBtn.click();
+        else if (command.includes("next")) nextBtn.click();
+        else if (command.includes("restart")) restartBtn.click();
+        else alert("Command not recognized: " + command);
+      };
+    };
+  </script>
+</body>
+</html>

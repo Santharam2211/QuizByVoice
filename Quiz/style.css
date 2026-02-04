@@ -1,0 +1,190 @@
+/* General Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body, html {
+  height: 100%;
+  background: #111;
+  color: white;
+  overflow-x: hidden;
+}
+
+/* Animated Background */
+.animated-bg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(-45deg, #1e3c72, #2a5298, #0f2027, #203a43);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes gradientBG {
+  0% {background-position: 0% 50%;}
+  50% {background-position: 100% 50%;}
+  100% {background-position: 0% 50%;}
+}
+
+/* Header & Menu */
+header {
+  background-color: #222;
+  padding: 10px 20px;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 10;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.menu {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.menu li {
+  cursor: pointer;
+  position: relative;
+}
+
+.menu li:hover {
+  color: #0f0;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 25px;
+  left: 0;
+  background-color: #333;
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 99;
+}
+
+.dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+.dropdown-menu li {
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+.dropdown-menu li:hover {
+  background-color: #444;
+}
+
+/* Quiz Container */
+.container {
+  margin-top: 80px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  text-align: center;
+}
+
+h2 {
+  margin-bottom: 20px;
+}
+
+select, button {
+  padding: 10px 20px;
+  font-size: 1em;
+  margin: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button {
+  background-color: #2196f3;
+  color: white;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background-color: #1976d2;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Answer Buttons */
+.btn-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.btn {
+  background-color: #555;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  background-color: #666;
+}
+
+.btn.correct {
+  background-color: #4caf50;
+}
+
+.btn.wrong {
+  background-color: #f44336;
+}
+
+/* Timer and Progress */
+#timer {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+
+#progress-bar {
+  height: 10px;
+  background-color: #333;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+#progress {
+  height: 100%;
+  width: 0;
+  background-color: #00ff99;
+  transition: width 0.3s ease;
+}
+
+/* Score */
+#score-box {
+  font-size: 1.3em;
+  margin-top: 20px;
+}
